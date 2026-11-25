@@ -1,0 +1,1001 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C96A06">
+<title>CRM Trans-Roulements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Mise en page : une colonne type téléphone (560px max), en-tête collant, barre d'onglets fixe en bas, fiches en tiroir. */
+:root{
+  --bg:#F2F4F6; --surface:#FFFFFF; --surface2:#E9EDF1; --fg:#15212C; --muted:#5A6774; --line:#D9DFE5;
+  --accent:#C96A06; --accent-soft:#FBEBD9; --on-accent:#FFFFFF;
+  --ok:#1C7F47; --ok-soft:#DFF3E7; --warn:#9A6408; --warn-soft:#FBF0D6; --bad:#B42525; --bad-soft:#FBE2E2;
+  --none:#55626F; --none-soft:#E6EAEE; --scrim:rgba(10,18,26,.45);
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1720; --surface:#15212C; --surface2:#1C2A37; --fg:#E6ECF1; --muted:#97A5B2; --line:#273746;
+  --accent:#F08E28; --accent-soft:#3A2814; --on-accent:#1A1004;
+  --ok:#43C17A; --ok-soft:#173326; --warn:#E3A841; --warn-soft:#352914; --bad:#F06A6A; --bad-soft:#3A1C1E;
+  --none:#A5B1BC; --none-soft:#22303D; --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1720; --surface:#15212C; --surface2:#1C2A37; --fg:#E6ECF1; --muted:#97A5B2; --line:#273746;
+  --accent:#F08E28; --accent-soft:#3A2814; --on-accent:#1A1004;
+  --ok:#43C17A; --ok-soft:#173326; --warn:#E3A841; --warn-soft:#352914; --bad:#F06A6A; --bad-soft:#3A1C1E;
+  --none:#A5B1BC; --none-soft:#22303D; --scrim:rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;min-height:100%;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* En-tête */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:20px;letter-spacing:.02em;line-height:1}
+.brand small{display:block;font-family:var(--f-body);font-weight:500;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.who{margin-left:auto;min-width:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.who label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.who select{max-width:200px;border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:5px 8px;font-size:13px}
+.preview{background:var(--accent-soft);color:var(--fg);font-size:12.5px;display:flex;gap:10px;align-items:center;padding-block:7px;border-bottom:1px solid var(--line)}
+.preview b{color:var(--accent)}
+.preview button{margin-left:auto;flex-shrink:0;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600}
+
+/* Onglets */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:560px;margin:0 auto;display:flex}
+.tab{flex:1;border:0;background:none;padding:9px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted)}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--accent)}
+
+main{padding-block:16px 8px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.stack{display:flex;flex-direction:column;gap:8px}
+
+/* Boutons */
+.btn{border:0;border-radius:var(--r);padding:12px 16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--surface2);color:var(--fg)}
+.btn.pr{background:var(--accent);color:var(--on-accent)}
+.btn.bad{background:var(--bad);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.full{width:100%}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Cartes et lignes */
+.row{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:center;text-align:left;width:100%;color:inherit}
+button.row:hover{border-color:var(--muted)}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .m{font-size:12.5px;color:var(--muted);margin-top:2px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.row .end{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.niv{font-family:var(--f-display);font-weight:700;font-size:15px;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;background:var(--surface2);color:var(--muted)}
+.niv.A{background:var(--accent);color:var(--on-accent)}
+.niv.B{background:var(--accent-soft);color:var(--accent)}
+.money{font-family:var(--f-display);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.g-valide{background:var(--ok-soft);color:var(--ok)}
+.g-a_verifier{background:var(--warn-soft);color:var(--warn)}
+.g-non_conforme{background:var(--bad-soft);color:var(--bad)}
+.g-non_verifie{background:var(--none-soft);color:var(--none)}
+.s-actif{background:var(--ok-soft);color:var(--ok)}
+.s-a_relancer{background:var(--warn-soft);color:var(--warn)}
+.s-perdu{background:var(--none-soft);color:var(--none)}
+.e-nouvelle{background:var(--none-soft);color:var(--none)}
+.e-devis{background:var(--accent-soft);color:var(--accent)}
+.e-negociation{background:var(--warn-soft);color:var(--warn)}
+.e-gagnee{background:var(--ok-soft);color:var(--ok)}
+.e-perdue{background:var(--bad-soft);color:var(--bad)}
+.late{color:var(--bad);font-weight:600}
+
+/* Chiffres */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.kpi b{display:block;font-family:var(--f-display);font-size:26px;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi span{font-size:11.5px;color:var(--muted)}
+
+/* Visite en cours */
+.live{background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.live .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px}
+.live .lbl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.live .lbl::before{animation:none}}
+.live .cl{font-family:var(--f-display);font-weight:700;font-size:24px;line-height:1.1}
+.timer{font-family:var(--f-display);font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.live-grid{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* Filtres */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:11px 14px}
+.empty{text-align:center;color:var(--muted);padding:28px 12px;border:1px dashed var(--line);border-radius:var(--r);font-size:14px}
+
+/* Tiroir */
+.scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-h{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:10px;padding-block:14px 10px;z-index:1}
+.sheet-h h3{font-family:var(--f-display);font-size:22px;font-weight:700;margin:0;flex:1;min-width:0}
+.x{border:0;background:var(--surface2);width:34px;height:34px;border-radius:50%;font-size:18px;line-height:1}
+.sheet-b{display:flex;flex-direction:column;gap:14px}
+
+/* Formulaires */
+.f{display:flex;flex-direction:column;gap:5px}
+.f>span{font-size:12.5px;font-weight:600;color:var(--muted)}
+.f input,.f select,.f textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:10px 12px}
+.f textarea{min-height:76px;resize:vertical}
+.f input:disabled{background:var(--surface2);color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:10px 6px;font-size:13px;font-weight:600}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.note{font-size:12.5px;color:var(--muted);background:var(--surface2);border-radius:9px;padding:9px 12px}
+.note.rule{border-left:3px solid var(--accent)}
+.err{color:var(--bad);font-size:13px;font-weight:600}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .btn{flex:1 1 140px}
+.gps-res{border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:center}
+.gps-res b{font-family:var(--f-display);font-size:28px;font-variant-numeric:tabular-nums;line-height:1}
+.toggle{width:44px;height:26px;border-radius:999px;border:0;background:var(--line);position:relative;flex-shrink:0}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.toggle[aria-checked="true"]{background:var(--ok)}
+.toggle[aria-checked="true"]::after{left:21px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;max-width:calc(100% - 32px);text-align:center}
+.pres{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.dots{display:inline-flex;gap:2px;flex-wrap:wrap}
+.dots i{width:7px;height:12px;border-radius:2px;display:block;background:currentColor}
+.dots i.g-valide{color:var(--ok)}.dots i.g-a_verifier{color:var(--warn)}.dots i.g-non_conforme{color:var(--bad)}.dots i.g-non_verifie{color:var(--none)}
+.dots i[class]{background-color:currentColor}
+.row.alert{border-left:3px solid var(--bad)}
+.alert-box{border-color:var(--bad);background:var(--bad-soft)}
+.alist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.photo{max-width:100%;width:200px;border-radius:8px;border:1px solid var(--line);display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+label.btn{cursor:pointer;align-self:flex-start}
+.blocked{display:flex;flex-direction:column;gap:12px;align-items:flex-start;padding-block:40px}
+</style><style>
+/* Compléments propres à la version connectée */
+.login{max-width:420px;margin:0 auto;padding-block:48px 24px;display:flex;flex-direction:column;gap:16px}
+.login .brand{font-size:34px}
+.menu{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600}
+.who-name{font-size:13px;font-weight:600;text-align:right;line-height:1.2}
+.who-name small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.gpsbox{border:1px dashed var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.gpsbox b{font-family:var(--f-display);font-size:22px}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.8s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.loading{padding:40px 0;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+"use strict";
+/* ════════════════════════════════════════════════
+   CONFIGURATION
+   La clé « anon » est publique par conception : la sécurité est assurée
+   par les règles du script SQL, pas par ce fichier.
+   Ne mettez JAMAIS la clé « service_role » ici.
+   ════════════════════════════════════════════════ */
+const SUPABASE_URL = "https://ndnocagegqpcforazwme.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kbm9jYWdlZ3FwY2ZvcmF6d21lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTE3MjYsImV4cCI6MjA5NjA2NzcyNn0.USHDGBXQGa4SYywGJAVCmy42hLI618z47Ng96sY_8UA";
+const BUCKET_PHOTOS = "photos-visites";
+const POINT_MINUTES = 5;          // un point de présence toutes les 5 minutes
+const PRECISION_MAX = 100;        // doit correspondre à gps_precision_max côté serveur
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+});
+
+/* ───────── Outils ───────── */
+const $ = (s, r = document) => r.querySelector(s);
+// Construit un élément sans jamais interpréter le texte comme du HTML.
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) if (c != null && c !== false) e.append(c instanceof Node ? c : String(c));
+  return e;
+}
+const fmtShort = n => n >= 1e6 ? (n / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " M" : new Intl.NumberFormat("fr-FR").format(n || 0);
+const fmtDate = iso => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+const fmtTime = iso => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+const fmtDist = d => d >= 1000 ? (d / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " km" : d + " m";
+const todayStr = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+function inDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function toast(msg, ms = 2800) {
+  document.querySelectorAll(".toast").forEach(t => t.remove());
+  const t = h("div", { class: "toast", role: "status" }, msg);
+  document.body.append(t); setTimeout(() => t.remove(), ms);
+}
+// Traduit les erreurs serveur en phrases compréhensibles.
+function msgErreur(e) {
+  const m = (e && (e.message || e.error_description || String(e))) || "Erreur inconnue";
+  if (/Failed to fetch|NetworkError|network/i.test(m)) return "Pas de connexion internet. Réessayez quand le réseau revient.";
+  if (/Invalid login credentials/i.test(m)) return "Email ou mot de passe incorrect.";
+  if (/Email not confirmed/i.test(m)) return "Email non confirmé. Demandez à l'administrateur de valider votre compte.";
+  if (/row-level security|permission denied/i.test(m)) return "Action non autorisée pour votre compte.";
+  if (/JWT|token/i.test(m)) return "Session expirée. Reconnectez-vous.";
+  return m;
+}
+async function run(promise) {
+  const { data, error } = await promise;
+  if (error) throw error;
+  return data;
+}
+
+/* ───────── Libellés ───────── */
+const ROLES = { admin: "Administrateur", manager: "Manager", commercial: "Commercial" };
+const TYPES = { mine: "Mine", cimenterie: "Cimenterie", industrie: "Industrie", agro: "Agro", transport: "Transport", btp: "BTP", portuaire: "Portuaire", prospect: "Prospect", autres: "Autres" };
+const STATUTS = { actif: "Actif", a_relancer: "À relancer", perdu: "Perdu" };
+const RESULTATS = { commande: "Commande", devis: "Demande de devis", relance: "À relancer", aucun: "Aucune suite" };
+const ETAPES = { nouvelle: "Nouvelle", devis: "Devis envoyé", negociation: "Négociation", gagnee: "Gagnée", perdue: "Perdue" };
+const ETAPES_OUVERTES = ["nouvelle", "devis", "negociation"];
+const GPS_LBL = { valide: "GPS validé", a_verifier: "À vérifier", non_conforme: "Hors zone", non_verifie: "Non vérifié" };
+const gpsPill = (s, d) => s ? h("span", { class: "pill g-" + s }, GPS_LBL[s] + (d != null ? " · " + fmtDist(d) : "")) : h("span", { class: "pill g-non_verifie" }, "Sans contrôle");
+
+/* ───────── État ───────── */
+const S = { session: null, me: null, users: [], clients: [], visites: [], opps: [], loaded: false };
+const isChef = () => S.me && ["admin", "manager"].includes(S.me.role);
+const isAdmin = () => S.me && S.me.role === "admin";
+const isCom = () => S.me && S.me.role === "commercial";
+const userName = id => (S.users.find(u => u.id === id) || {}).full_name || "—";
+const client = id => S.clients.find(c => c.id === id);
+const visiteEnCours = () => S.visites.find(v => v.statut === "en_cours" && v.commercial_id === S.me.id);
+const aVerifier = v => v.statut === "terminee" && !v.revue_decision && (v.alertes || []).length > 0;
+const rayonDe = c => c.rayon_metres || 100;
+
+async function chargerTout() {
+  const [users, clients, visites, opps] = await Promise.all([
+    run(sb.from("profiles").select("id,full_name,role,is_active,manager_id,zone").order("full_name")),
+    run(sb.from("clients").select("*").order("raison_sociale")),
+    run(sb.from("v_visites").select("*").not("heure_debut", "is", null).order("heure_debut", { ascending: false }).limit(400)),
+    run(sb.from("opportunites").select("*").order("created_at", { ascending: false })),
+  ]);
+  Object.assign(S, { users, clients, visites, opps, loaded: true });
+}
+async function rechargerVisite(id) {
+  const v = await run(sb.from("v_visites").select("*").eq("id", id).single());
+  const i = S.visites.findIndex(x => x.id === id);
+  if (i >= 0) S.visites[i] = v; else S.visites.unshift(v);
+  return v;
+}
+
+/* ───────── GPS réel ───────── */
+// Plusieurs lectures pendant quelques secondes ; on garde la plus précise.
+function mesurerPosition({ maxMs = 12000, cible = 20, onProgress } = {}) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    let best = null, fini = false;
+    const stop = res => { if (fini) return; fini = true; navigator.geolocation.clearWatch(wid); clearTimeout(tm); resolve(res); };
+    const wid = navigator.geolocation.watchPosition(p => {
+      const m = { lat: p.coords.latitude, lng: p.coords.longitude, precision: Math.round(p.coords.accuracy) };
+      if (!best || m.precision < best.precision) best = m;
+      if (onProgress) onProgress(best);
+      if (best.precision <= cible) stop(best);
+    }, err => {
+      if (err.code === 1) { fini = true; navigator.geolocation.clearWatch(wid); clearTimeout(tm); reject(Object.assign(new Error("refus"), { refus: true })); }
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: maxMs });
+    const tm = setTimeout(() => stop(best), maxMs);
+  });
+}
+const AIDE_GPS = "Activez la localisation : Android → Paramètres → Localisation ; iPhone → Réglages → Confidentialité → Service de localisation. Puis autorisez ce site dans le navigateur.";
+
+/* ───────── Points de présence pendant la visite ───────── */
+let pointIv = null, dernierPoint = 0;
+async function ajouterPoint() {
+  const v = S.me && visiteEnCours();
+  if (!v || document.visibilityState !== "visible") return;
+  dernierPoint = Date.now();
+  try {
+    const pos = await mesurerPosition({ maxMs: 8000, cible: 25 });
+    await run(sb.from("visite_points").insert({ visite_id: v.id, lat: pos && pos.lat, lng: pos && pos.lng, precision_m: pos && pos.precision }));
+    await rechargerVisite(v.id);
+    if (page === "visites" && !$("#scrim")) render();
+  } catch (e) { /* hors ligne ou GPS refusé : on réessaiera au prochain passage */ }
+}
+function suiviPresence() {
+  clearInterval(pointIv);
+  if (!S.me || !visiteEnCours()) return;
+  pointIv = setInterval(() => { if (Date.now() - dernierPoint >= POINT_MINUTES * 60000 - 2000) ajouterPoint(); }, 30000);
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && S.me && visiteEnCours() && Date.now() - dernierPoint >= POINT_MINUTES * 60000) ajouterPoint();
+});
+
+/* ───────── Tiroir ───────── */
+function openSheet(title, body) {
+  closeSheet();
+  const scrim = h("div", { class: "scrim", id: "scrim", onclick: e => { if (e.target.id === "scrim") closeSheet(); } },
+    h("div", { class: "sheet wrap", role: "dialog", "aria-modal": "true", "aria-label": title },
+      h("div", { class: "sheet-h" }, h("h3", {}, title), h("button", { class: "x", type: "button", "aria-label": "Fermer", onclick: closeSheet }, "×")),
+      h("div", { class: "sheet-b" }, body)));
+  document.body.append(scrim);
+}
+function closeSheet() { const s = $("#scrim"); if (s) s.remove(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+const field = (label, input) => h("label", { class: "f" }, h("span", {}, label), input);
+// Bouton qui se bloque pendant l'action et affiche l'erreur dans « err ».
+function actionBtn(label, cls, err, fn) {
+  const b = h("button", { class: "btn " + cls, type: "button" }, label);
+  b.addEventListener("click", async () => {
+    if (b.disabled) return;
+    b.disabled = true; const old = b.textContent; b.replaceChildren(h("span", { class: "spin" }), " Patientez…");
+    if (err) err.textContent = "";
+    try { await fn(); } catch (e) { if (err) err.textContent = msgErreur(e); else toast(msgErreur(e)); }
+    if (b.isConnected) { b.disabled = false; b.textContent = old; }
+  });
+  return b;
+}
+
+/* ───────── Écran de connexion ───────── */
+function ecranConnexion(message) {
+  clearInterval(pointIv); clearInterval(timerIv);
+  const email = h("input", { id: "l-email", type: "email", autocomplete: "username", inputmode: "email" });
+  const pw = h("input", { id: "l-pw", type: "password", autocomplete: "current-password" });
+  const err = h("div", { class: "err", role: "alert" }, message || "");
+  const go = actionBtn("Se connecter", "pr full", err, async () => {
+    if (!email.value.trim() || !pw.value) throw new Error("Saisissez votre email et votre mot de passe.");
+    await run(sb.auth.signInWithPassword({ email: email.value.trim(), password: pw.value }));
+  });
+  pw.addEventListener("keydown", e => { if (e.key === "Enter") go.click(); });
+  $("#root").replaceChildren(h("div", { class: "wrap" }, h("div", { class: "login" },
+    h("div", { class: "brand" }, "TR-CI CRM", h("small", {}, "Visites commerciales · Trans-Roulements CI")),
+    field("Email", email), field("Mot de passe", pw), err, go,
+    h("p", { class: "sub" }, "Mot de passe oublié ou compte bloqué ? Contactez l'administrateur."))));
+  setTimeout(() => email.focus(), 50);
+}
+
+/* ───────── Coquille de l'application ───────── */
+function coquille() {
+  $("#root").replaceChildren(
+    h("div", { class: "app" },
+      h("header", { class: "top" }, h("div", { class: "wrap top-in" },
+        h("div", { class: "brand" }, "TR-CI CRM", h("small", {}, "Visites commerciales")),
+        h("div", { class: "who", style: "flex-direction:row;align-items:center;gap:10px" },
+          h("div", { class: "who-name" }, S.me.full_name || "—", h("small", {}, ROLES[S.me.role] || "")),
+          h("button", { class: "menu", type: "button", id: "btn-menu", onclick: menuCompte }, "Compte")))),
+      h("main", { class: "wrap", id: "view" })),
+    h("nav", { class: "tabs", "aria-label": "Sections" }, h("div", { class: "tabs-in", id: "tabs" })));
+}
+function menuCompte() {
+  openSheet("Mon compte", [
+    h("dl", { class: "kv" }, h("dt", {}, "Nom"), h("dd", {}, S.me.full_name || "—"), h("dt", {}, "Email"), h("dd", {}, (S.session && S.session.user.email) || "—"),
+      h("dt", {}, "Rôle"), h("dd", {}, ROLES[S.me.role])),
+    actionBtn("Actualiser les données", "ghost full", null, async () => { await chargerTout(); closeSheet(); render(); toast("Données à jour"); }),
+    actionBtn("Se déconnecter", "bad full", null, async () => { closeSheet(); await sb.auth.signOut(); }),
+  ]);
+}
+
+/* ───────── Navigation ───────── */
+const ICONS = {
+  visites: "M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z",
+  clients: "M3 21V7l6-4 6 4v14H3zm4-2h4v-4H7v4zm10 2V10h4v11h-4zM7 11h4V8H7v3z",
+  opportunites: "M3 17l6-6 4 4 7-7v4h2V4h-8v2h4l-5 5-4-4-8 8z",
+  equipe: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 9c0-3.3 3.1-6 7-6s7 2.7 7 6v1H2v-1zm15-9a3 3 0 1 0 0-6v6zm1 3c2.4.4 4 2.3 4 4.5V21h-4v-1c0-2.4-1-4.5-2.6-6H18z",
+};
+const PAGES = { visites: "Visites", clients: "Clients", opportunites: "Opportunités", equipe: "Équipe" };
+let page = "visites", filtreClient = "tous", rechClient = "", filtreEtape = "ouvertes", filtreCom = "", timerIv = null;
+
+function renderTabs() {
+  const keys = Object.keys(PAGES).filter(k => k !== "equipe" || isAdmin());
+  if (!keys.includes(page)) page = "visites";
+  $("#tabs").replaceChildren(...keys.map(k => {
+    const b = h("button", { class: "tab", type: "button", "aria-current": k === page ? "page" : null, onclick: () => go(k) });
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${ICONS[k]}"/></svg>`; // icône fixe, aucune donnée
+    b.append(PAGES[k]);
+    return b;
+  }));
+}
+function go(p) { page = p; try { history.replaceState(null, "", "#" + p); } catch (e) {} render(); window.scrollTo(0, 0); }
+function render() {
+  clearInterval(timerIv);
+  if (!S.me || !$("#view")) return;
+  renderTabs();
+  const out = ({ visites: pageVisites, clients: pageClients, opportunites: pageOpps, equipe: pageEquipe }[page])();
+  $("#view").replaceChildren(...out.filter(x => x != null && x !== false));
+}
+
+/* ───────── Page Visites ───────── */
+function selectCommercial(onchange) {
+  const coms = S.users.filter(u => u.role === "commercial");
+  const sel = h("select", { id: "filtre-com", onchange: e => { filtreCom = e.target.value; onchange(); } },
+    h("option", { value: "" }, "Tous les commerciaux"), coms.map(u => h("option", { value: u.id }, u.full_name || "—")));
+  sel.value = filtreCom;
+  return field("Commercial", sel);
+}
+function presenceTxt(v) { return v.nb_points ? v.nb_points_valides + "/" + v.nb_points + " points dans la zone" : null; }
+
+function pageVisites() {
+  const out = [];
+  const enCours = isCom() ? visiteEnCours() : null;
+  const debutMois = new Date(); debutMois.setDate(1); debutMois.setHours(0, 0, 0, 0);
+  let liste = S.visites.slice();
+  if (isChef() && filtreCom) liste = liste.filter(v => v.commercial_id === filtreCom);
+  const duMois = liste.filter(v => v.statut === "terminee" && new Date(v.heure_debut) >= debutMois);
+  const valides = duMois.filter(v => v.statut_gps === "valide").length;
+  const relances = S.opps.filter(o => ETAPES_OUVERTES.includes(o.etape) && o.date_relance && o.date_relance <= todayStr()).length;
+  const nbAv = liste.filter(aVerifier).length;
+
+  out.push(h("div", {}, h("h1", {}, "Bonjour " + ((S.me.full_name || "").split(" ")[0] || "")),
+    h("p", { class: "sub" }, new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }) + " · " + ROLES[S.me.role])));
+  out.push(h("div", { class: "kpis" },
+    h("div", { class: "kpi" }, h("b", {}, duMois.length), h("span", {}, "visites ce mois")),
+    h("div", { class: "kpi" }, h("b", {}, duMois.length ? Math.round(valides / duMois.length * 100) + " %" : "—"), h("span", {}, "GPS validé")),
+    isChef()
+      ? h("div", { class: "kpi" }, h("b", { class: nbAv ? "late" : "" }, nbAv), h("span", {}, "visites à vérifier"))
+      : h("div", { class: "kpi" }, h("b", { class: relances ? "late" : "" }, relances), h("span", {}, "relances dues"))));
+
+  if (enCours) {
+    const c = client(enCours.client_id) || { raison_sociale: "—" };
+    const t = h("div", { class: "timer" }, "00:00");
+    const tick = () => { const s = Math.max(0, Math.floor((Date.now() - new Date(enCours.heure_debut)) / 1000)); t.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+    tick(); timerIv = setInterval(tick, 1000);
+    out.push(h("section", { class: "live", "aria-label": "Visite en cours" },
+      h("div", { class: "lbl" }, "Visite en cours"),
+      h("div", { class: "cl" }, c.raison_sociale),
+      h("div", { class: "live-grid" }, h("div", {}, t, h("div", { class: "sub" }, "Démarrée à " + fmtTime(enCours.heure_debut))), gpsPill(enCours.statut_gps, enCours.distance_metres)),
+      h("div", { class: "f" }, h("span", {}, "Présence sur site"),
+        h("span", { class: "sub", style: "margin:0" }, presenceTxt(enCours) || "Premier point dans " + POINT_MINUTES + " min"),
+        h("span", { class: "sub", style: "margin:0" }, "Gardez l'application ouverte : un point GPS est pris toutes les " + POINT_MINUTES + " min.")),
+      h("button", { class: "btn pr full", type: "button", onclick: () => sheetTerminer(enCours) }, "Terminer la visite"),
+      h("button", { class: "btn ghost sm", type: "button", onclick: () => sheetAnnuler(enCours) }, "Annuler cette visite")));
+  } else if (isCom()) {
+    out.push(h("button", { class: "btn pr full", type: "button", onclick: () => sheetDemarrer() }, "Démarrer une visite"));
+  }
+
+  if (isChef()) {
+    out.push(selectCommercial(() => render()));
+    const av = liste.filter(aVerifier);
+    out.push(h("h2", {}, "À vérifier (" + av.length + ")"));
+    out.push(av.length ? h("div", { class: "stack" }, av.map(v => {
+      const c = client(v.client_id) || {}, a = v.alertes || [];
+      return h("button", { class: "row alert", type: "button", onclick: () => sheetVisite(v) },
+        h("div", { class: "main" },
+          h("div", { class: "t" }, (c.raison_sociale || "—") + " · " + userName(v.commercial_id)),
+          h("div", { class: "m", style: "display:block" }, a[0] + (a.length > 1 ? " (+" + (a.length - 1) + ")" : "")),
+          h("div", { class: "m" }, fmtDate(v.heure_debut) + " · " + fmtTime(v.heure_debut))),
+        h("div", { class: "end" }, gpsPill(v.statut_gps, v.distance_metres)));
+    })) : h("div", { class: "empty" }, "Aucune visite suspecte."));
+  }
+  out.push(h("h2", {}, isChef() ? "Toutes les visites" : "Mes dernières visites"));
+  const done = liste.filter(v => v.statut === "terminee" || v.statut === "en_cours");
+  out.push(done.length ? h("div", { class: "stack" }, done.slice(0, 60).map(rowVisite)) : h("div", { class: "empty" }, isCom() ? "Aucune visite. Appuyez sur « Démarrer une visite » une fois chez le client." : "Aucune visite pour le moment."));
+  return out;
+}
+function rowVisite(v) {
+  const c = client(v.client_id) || { raison_sociale: "Client inaccessible" };
+  return h("button", { class: "row", type: "button", onclick: () => sheetVisite(v) },
+    h("div", { class: "main" },
+      h("div", { class: "t" }, c.raison_sociale),
+      h("div", { class: "m" },
+        h("span", {}, fmtDate(v.heure_debut) + " · " + fmtTime(v.heure_debut)),
+        h("span", {}, v.duree_minutes ? v.duree_minutes + " min" : v.statut === "en_cours" ? "en cours" : ""),
+        isChef() ? h("span", {}, userName(v.commercial_id)) : null,
+        v.cr_resultat ? h("span", {}, RESULTATS[v.cr_resultat]) : null,
+        isChef() && aVerifier(v) ? h("span", { class: "late" }, "à vérifier") : null,
+        v.revue_decision ? h("span", { class: v.revue_decision === "rejetee" ? "late" : "" }, v.revue_decision === "rejetee" ? "rejetée" : "confirmée") : null)),
+    h("div", { class: "end" }, gpsPill(v.statut_gps, v.distance_metres), presenceTxt(v) ? h("span", { class: "sub", style: "margin:0;font-size:11.5px" }, v.nb_points_valides + "/" + v.nb_points + " pts") : null));
+}
+function sheetVisite(v) {
+  const c = client(v.client_id) || {};
+  const alertes = v.alertes || [];
+  const err = h("div", { class: "err", role: "alert" });
+  const pres = h("dd", {}, h("span", { class: "spin" }));
+  const photo = h("dd", {}, v.photo_path ? h("span", { class: "spin" }) : "—");
+  const decide = d => actionBtn(d === "confirmee" ? "Confirmer la visite" : "Rejeter la visite", d === "confirmee" ? "pr" : "ghost", err, async () => {
+    await run(sb.from("visites").update({ revue_decision: d }).eq("id", v.id));
+    await rechargerVisite(v.id); closeSheet(); render(); toast(d === "confirmee" ? "Visite confirmée" : "Visite rejetée");
+  });
+  openSheet(c.raison_sociale || "Visite", [
+    alertes.length ? h("div", { class: "box alert-box" }, h("h2", { style: "color:var(--bad)" }, "Points à vérifier"), h("ul", { class: "alist" }, alertes.map(a => h("li", {}, a)))) : null,
+    v.revue_decision ? h("div", { class: "note" }, (v.revue_decision === "confirmee" ? "Confirmée" : "Rejetée") + " par " + userName(v.revue_par) + " le " + fmtDate(v.revue_le) + ".") : null,
+    isChef() && alertes.length && !v.revue_decision && v.statut === "terminee" ? h("div", { class: "actions" }, decide("rejetee"), decide("confirmee")) : null,
+    err,
+    h("dl", { class: "kv" },
+      h("dt", {}, "Date"), h("dd", {}, new Date(v.heure_debut).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })),
+      h("dt", {}, "Horaire"), h("dd", {}, fmtTime(v.heure_debut) + (v.heure_fin ? " → " + fmtTime(v.heure_fin) + " (" + v.duree_minutes + " min)" : " → en cours")),
+      h("dt", {}, "Commercial"), h("dd", {}, userName(v.commercial_id)),
+      h("dt", {}, "GPS début"), h("dd", {}, gpsPill(v.statut_gps, v.distance_metres)),
+      h("dt", {}, "Précision"), h("dd", { class: v.precision_debut > PRECISION_MAX ? "late" : "" }, v.precision_debut != null ? "± " + Math.round(v.precision_debut) + " m" : "—"),
+      h("dt", {}, "Zone client"), h("dd", {}, c.lat != null ? "rayon de " + rayonDe(c) + " m" : "position non renseignée"),
+      h("dt", {}, "Présence"), pres,
+      v.heure_fin ? [h("dt", {}, "GPS fin"), h("dd", {}, gpsPill(v.statut_gps_fin, v.distance_fin_metres))] : null,
+      v.photo_path ? [h("dt", {}, "Photo"), photo] : null,
+      v.cr_personne ? [h("dt", {}, "Rencontré"), h("dd", {}, v.cr_personne)] : null,
+      v.cr_objet ? [h("dt", {}, "Objet"), h("dd", {}, v.cr_objet)] : null,
+      v.cr_resultat ? [h("dt", {}, "Résultat"), h("dd", {}, RESULTATS[v.cr_resultat] || v.cr_resultat)] : null,
+      v.cr_commentaire ? [h("dt", {}, "Commentaire"), h("dd", {}, v.cr_commentaire)] : null,
+      v.date_relance ? [h("dt", {}, "Relance"), h("dd", {}, fmtDate(v.date_relance))] : null),
+    h("div", { class: "note rule" }, "Heures, distances et statuts GPS sont calculés par le serveur. Personne ne peut les modifier depuis l'application."),
+    c.id ? h("button", { class: "btn ghost", type: "button", onclick: () => sheetClient(c) }, "Voir la fiche client") : null,
+  ]);
+  // Points de présence et photo chargés à la demande.
+  sb.from("visite_points").select("mesure_le,distance_metres,statut").eq("visite_id", v.id).order("mesure_le").then(({ data }) => {
+    pres.replaceChildren(dotsPresence(data || []));
+  });
+  if (v.photo_path) sb.storage.from(BUCKET_PHOTOS).createSignedUrl(v.photo_path, 600).then(({ data, error }) => {
+    photo.replaceChildren(error || !data ? "Photo indisponible" : h("img", { src: data.signedUrl, alt: "Photo du site", class: "photo" }));
+  });
+}
+function dotsPresence(points) {
+  if (!points.length) return h("span", { class: "sub", style: "margin:0" }, "Aucun point");
+  const ok = points.filter(p => p.statut === "valide").length;
+  return h("span", { class: "pres" },
+    h("span", { class: "dots", "aria-hidden": "true" }, points.slice(-36).map(p => h("i", { class: "g-" + p.statut, title: fmtTime(p.mesure_le) + " · " + (p.distance_metres != null ? fmtDist(p.distance_metres) : "sans GPS") }))),
+    h("span", {}, ok + "/" + points.length + " points dans la zone"));
+}
+
+function sheetDemarrer(clientId) {
+  if (visiteEnCours()) { toast("Terminez d'abord la visite en cours"); return; }
+  const list = S.clients.filter(c => c.statut !== "perdu" && c.commercial_id === S.me.id);
+  const sel = h("select", { id: "dv-client" }, h("option", { value: "" }, "— Choisir un client —"), list.map(c => h("option", { value: c.id }, c.raison_sociale + (c.ville ? " · " + c.ville : ""))));
+  if (clientId) sel.value = clientId;
+  const info = h("div", { class: "note" });
+  const showInfo = () => {
+    const c = client(sel.value);
+    info.textContent = !c ? "Choisissez le client chez qui vous êtes." :
+      c.lat == null ? "Ce client n'a pas encore de position GPS : la visite sera « Non vérifié ». Enregistrez sa position depuis sa fiche quand vous êtes sur place." :
+      "Zone du client : validé jusqu'à " + rayonDe(c) + " m. Restez à l'extérieur ou près d'une fenêtre pour un bon signal.";
+  };
+  sel.addEventListener("change", showInfo); showInfo();
+  const gps = h("div", { class: "gpsbox", hidden: true });
+  const err = h("div", { class: "err", role: "alert" });
+  let sansGps = false;
+  const demarrer = async pos => {
+    const ins = await run(sb.from("visites").insert({ client_id: sel.value, lat_debut: pos && pos.lat, lng_debut: pos && pos.lng, precision_debut: pos && pos.precision }).select("id").single());
+    const v = await rechargerVisite(ins.id);
+    dernierPoint = Date.now(); suiviPresence();
+    closeSheet(); go("visites");
+    toast("Visite démarrée · " + GPS_LBL[v.statut_gps]);
+  };
+  const btnSans = actionBtn("Démarrer sans GPS (Non vérifié)", "ghost full", err, () => demarrer(null));
+  btnSans.hidden = true;
+  const btn = actionBtn("Démarrer", "pr full", err, async () => {
+    if (!sel.value) throw new Error("Choisissez un client.");
+    gps.hidden = false; gps.replaceChildren(h("span", {}, h("span", { class: "spin" }), " Recherche du signal GPS…"));
+    let pos = null;
+    try {
+      pos = await mesurerPosition({ onProgress: p => gps.replaceChildren(h("span", {}, h("span", { class: "spin" }), " Précision actuelle : "), h("b", {}, "± " + p.precision + " m")) });
+    } catch (e) {
+      gps.replaceChildren(h("strong", { class: "late" }, "Localisation refusée."), h("span", {}, AIDE_GPS));
+      btnSans.hidden = false; return;
+    }
+    if (!pos) { gps.replaceChildren(h("strong", { class: "late" }, "Aucun signal GPS."), h("span", {}, "Sortez à l'extérieur et réessayez.")); btnSans.hidden = false; return; }
+    gps.replaceChildren(h("span", {}, "Position trouvée : "), h("b", {}, "± " + pos.precision + " m"));
+    await demarrer(pos);
+  });
+  openSheet("Démarrer une visite", [field("Client", sel), info, gps, err, btn, btnSans,
+    list.length ? null : h("div", { class: "empty" }, "Vous n'avez encore aucun client. Créez-en un dans l'onglet Clients.")]);
+}
+function sheetAnnuler(v) {
+  const err = h("div", { class: "err", role: "alert" });
+  openSheet("Annuler la visite ?", [
+    h("p", { style: "margin:0" }, "La visite sera marquée « annulée ». Elle reste visible par votre manager."),
+    err,
+    h("div", { class: "actions" },
+      h("button", { class: "btn ghost", type: "button", onclick: closeSheet }, "Garder la visite"),
+      actionBtn("Annuler la visite", "bad", err, async () => {
+        await run(sb.from("visites").update({ statut: "annulee" }).eq("id", v.id));
+        await rechargerVisite(v.id); suiviPresence(); closeSheet(); render(); toast("Visite annulée");
+      })),
+  ]);
+}
+
+// Réduit la photo avant envoi (côté le plus long : 1280 px).
+function reduirePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, 1280 / Math.max(img.width, img.height)), cv = document.createElement("canvas");
+      cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      cv.toBlob(b => b ? resolve(b) : reject(new Error("Image illisible")), "image/jpeg", 0.8);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image illisible")); };
+    img.src = url;
+  });
+}
+
+function sheetTerminer(v) {
+  const c = client(v.client_id) || {};
+  const pers = h("input", { id: "tv-pers", value: c.contact_principal || "", autocomplete: "off" });
+  const obj = h("input", { id: "tv-obj", placeholder: "Ex. remplacement roulements convoyeur" });
+  const com = h("textarea", { id: "tv-com" });
+  const rel = h("input", { id: "tv-rel", type: "date", value: inDays(7) });
+  const relWrap = field("Date de relance", rel); relWrap.hidden = true;
+  let res = null, photo = null;
+  const seg = h("div", { class: "seg", role: "group", "aria-label": "Résultat" });
+  const drawSeg = () => seg.replaceChildren(...Object.entries(RESULTATS).map(([k, l]) =>
+    h("button", { type: "button", "aria-pressed": String(k === res), onclick: () => { res = k; relWrap.hidden = k !== "relance"; drawSeg(); } }, l)));
+  drawSeg();
+  const photoPrev = h("div", { class: "sub", style: "margin:0" }, "Aucune photo");
+  const photoIn = h("input", { id: "tv-photo", type: "file", accept: "image/*", capture: "environment", class: "sr", onchange: async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { photo = await reduirePhoto(f); photoPrev.replaceChildren(h("img", { src: URL.createObjectURL(photo), alt: "Photo du site", class: "photo" })); }
+    catch (x) { photo = null; photoPrev.textContent = "Impossible de lire cette image."; }
+  } });
+  const gps = h("div", { class: "gpsbox", hidden: true });
+  const err = h("div", { class: "err", role: "alert" });
+  openSheet("Terminer la visite", [
+    h("p", { class: "sub", style: "margin:0" }, c.raison_sociale || ""),
+    field("Personne rencontrée *", pers), field("Objet de la visite *", obj),
+    h("div", { class: "f" }, h("span", {}, "Résultat *"), seg), relWrap,
+    field("Commentaire", com),
+    h("div", { class: "box" }, h("div", { class: "f" }, h("span", {}, "Photo du site (facultatif)")), photoPrev,
+      h("label", { class: "btn ghost sm", for: "tv-photo" }, "Prendre une photo"), photoIn),
+    gps, err,
+    actionBtn("Enregistrer la visite", "pr full", err, async () => {
+      if (!pers.value.trim()) throw new Error("Indiquez la personne rencontrée.");
+      if (!obj.value.trim()) throw new Error("Indiquez l'objet de la visite.");
+      if (!res) throw new Error("Choisissez un résultat.");
+      gps.hidden = false; gps.replaceChildren(h("span", {}, h("span", { class: "spin" }), " Position de fin de visite…"));
+      let pos = null;
+      try { pos = await mesurerPosition({ maxMs: 10000, cible: 25 }); } catch (e) { pos = null; }
+      gps.replaceChildren(h("span", {}, pos ? "Position de fin : ± " + pos.precision + " m" : "Fin de visite sans GPS"));
+      let photo_path = null;
+      if (photo) {
+        gps.append(h("span", {}, h("span", { class: "spin" }), " Envoi de la photo…"));
+        const path = S.me.id + "/" + v.id + "-" + Date.now() + ".jpg";
+        const { error } = await sb.storage.from(BUCKET_PHOTOS).upload(path, photo, { contentType: "image/jpeg", upsert: false });
+        if (error) toast("La photo n'a pas pu être envoyée. La visite est enregistrée sans photo.", 4000); else photo_path = path;
+      }
+      await run(sb.from("visites").update({
+        statut: "terminee", lat_fin: pos && pos.lat, lng_fin: pos && pos.lng, precision_fin: pos && pos.precision,
+        cr_personne: pers.value.trim(), cr_objet: obj.value.trim(), cr_resultat: res, cr_commentaire: com.value.trim() || null,
+        date_relance: res === "relance" ? rel.value || null : null, photo_path,
+      }).eq("id", v.id));
+      if (res === "relance" && c.statut === "actif") {
+        const { error } = await sb.from("clients").update({ statut: "a_relancer" }).eq("id", c.id);
+        if (!error) c.statut = "a_relancer";
+      }
+      const fin = await rechargerVisite(v.id);
+      suiviPresence(); closeSheet(); render(); toast("Visite enregistrée");
+      if (res === "commande" || res === "devis") setTimeout(() => proposerOpp(c, fin), 250);
+    }),
+  ]);
+}
+function proposerOpp(c, v) {
+  openSheet("Créer une opportunité ?", [
+    h("p", { style: "margin:0" }, "Le résultat « " + RESULTATS[v.cr_resultat] + " » chez " + c.raison_sociale + " peut être suivi comme opportunité."),
+    h("div", { class: "actions" },
+      h("button", { class: "btn ghost", type: "button", onclick: closeSheet }, "Plus tard"),
+      h("button", { class: "btn pr", type: "button", onclick: () => sheetOpp(null, { client_id: c.id, titre: v.cr_objet, visite_id: v.id, etape: v.cr_resultat === "commande" ? "gagnee" : "devis" }) }, "Créer")),
+  ]);
+}
+
+/* ───────── Page Clients ───────── */
+function pageClients() {
+  let list = S.clients.slice();
+  if (filtreClient !== "tous") list = list.filter(c => c.statut === filtreClient);
+  const q = rechClient.trim().toLowerCase();
+  if (q) list = list.filter(c => [c.raison_sociale, c.ville, c.contact_principal, c.code_client].filter(Boolean).join(" ").toLowerCase().includes(q));
+  const listEl = h("div", { class: "stack", id: "client-list" });
+  const fill = items => listEl.replaceChildren(...(items.length ? items.slice(0, 200).map(rowClient) : [h("div", { class: "empty" }, q ? "Aucun client ne correspond à « " + rechClient + " »." : S.clients.length ? "Aucun client dans ce filtre." : "Aucun client. Appuyez sur « + Nouveau » pour créer le premier.")]));
+  fill(list);
+  const search = h("input", { class: "search", id: "client-search", type: "search", placeholder: "Rechercher un client, une ville, un contact…", value: rechClient, "aria-label": "Rechercher un client",
+    oninput: e => {
+      rechClient = e.target.value; const qq = rechClient.trim().toLowerCase();
+      let l = S.clients.slice(); if (filtreClient !== "tous") l = l.filter(c => c.statut === filtreClient);
+      if (qq) l = l.filter(c => [c.raison_sociale, c.ville, c.contact_principal, c.code_client].filter(Boolean).join(" ").toLowerCase().includes(qq));
+      fill(l);
+    } });
+  return [
+    h("div", { class: "head" }, h("div", {}, h("h1", {}, "Clients"), h("p", { class: "sub" }, S.clients.length + (S.clients.length > 1 ? " clients" : " client") + (isChef() ? " au total" : " dans votre portefeuille"))),
+      h("button", { class: "btn pr sm", type: "button", onclick: () => sheetClientForm(null) }, "+ Nouveau")),
+    search,
+    h("div", { class: "chips", role: "group", "aria-label": "Filtrer par statut" },
+      [["tous", "Tous"], ...Object.entries(STATUTS)].map(([k, l]) => h("button", { class: "chip", type: "button", "aria-pressed": String(filtreClient === k), onclick: () => { filtreClient = k; render(); } }, l))),
+    listEl,
+  ];
+}
+function rowClient(c) {
+  return h("button", { class: "row", type: "button", onclick: () => sheetClient(c) },
+    h("div", { class: "niv " + c.niveau_strategique, title: "Niveau stratégique " + c.niveau_strategique }, c.niveau_strategique),
+    h("div", { class: "main" },
+      h("div", { class: "t" }, c.raison_sociale),
+      h("div", { class: "m" }, h("span", {}, c.ville || ""), h("span", {}, TYPES[c.type_client] || c.type_client || ""),
+        isChef() ? h("span", {}, userName(c.commercial_id)) : null,
+        c.lat == null ? h("span", { class: "late" }, "sans GPS") : null)),
+    h("div", { class: "end" }, h("span", { class: "pill s-" + c.statut }, STATUTS[c.statut] || c.statut)));
+}
+function sheetClient(c) {
+  const visites = S.visites.filter(v => v.client_id === c.id);
+  const opps = S.opps.filter(o => o.client_id === c.id);
+  const tel = c.telephone ? h("span", {}, c.telephone, " ",
+    h("button", { class: "btn sm ghost", type: "button", style: "padding:2px 8px;margin-left:4px", onclick: () => {
+      try { navigator.clipboard.writeText(c.telephone).then(() => toast("Numéro copié"), () => toast(c.telephone)); } catch (e) { toast(c.telephone); }
+    } }, "Copier"), " ", h("a", { href: "tel:" + c.telephone.replace(/[^\d+]/g, "") }, "Appeler")) : "—";
+  const lien = c.lat != null
+    ? h("a", { href: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(c.lat + "," + c.lng), target: "_blank", rel: "noopener" }, "Itinéraire Google Maps")
+    : h("span", { class: "late" }, "Position non renseignée");
+  openSheet(c.raison_sociale, [
+    h("div", { class: "actions" },
+      h("span", { class: "niv " + c.niveau_strategique }, c.niveau_strategique), h("span", { class: "pill s-" + c.statut }, STATUTS[c.statut] || c.statut),
+      h("span", { class: "sub", style: "margin:0;align-self:center" }, (c.code_client ? c.code_client + " · " : "") + (TYPES[c.type_client] || ""))),
+    h("dl", { class: "kv" },
+      h("dt", {}, "Contact"), h("dd", {}, c.contact_principal || "—"),
+      h("dt", {}, "Téléphone"), h("dd", {}, tel),
+      h("dt", {}, "Email"), h("dd", {}, c.email || "—"),
+      h("dt", {}, "Adresse"), h("dd", {}, [c.adresse, c.ville].filter(Boolean).join(", ") || "—"),
+      h("dt", {}, "GPS"), h("dd", {}, lien),
+      c.lat != null ? [h("dt", {}, "Zone"), h("dd", {}, "rayon de " + rayonDe(c) + " m" + (c.gps_defini_par ? " · position par " + userName(c.gps_defini_par) + (c.gps_defini_le ? " le " + fmtDate(c.gps_defini_le) : "") : ""))] : null,
+      h("dt", {}, "Fournisseur"), h("dd", {}, c.fournisseur_actuel || "—"),
+      h("dt", {}, "Commercial"), h("dd", {}, userName(c.commercial_id)),
+      c.notes ? [h("dt", {}, "Notes"), h("dd", {}, c.notes)] : null),
+    h("div", { class: "actions" },
+      isCom() && c.commercial_id === S.me.id ? h("button", { class: "btn pr", type: "button", onclick: () => sheetDemarrer(c.id), disabled: !!visiteEnCours() }, "Démarrer une visite") : null,
+      h("button", { class: "btn ghost", type: "button", onclick: () => sheetOpp(null, { client_id: c.id }) }, "Nouvelle opportunité"),
+      h("button", { class: "btn ghost", type: "button", onclick: () => sheetClientForm(c) }, "Modifier")),
+    h("h2", {}, "Opportunités (" + opps.length + ")"),
+    opps.length ? h("div", { class: "stack" }, opps.map(rowOpp)) : h("div", { class: "empty" }, "Aucune opportunité."),
+    h("h2", {}, "Visites (" + visites.length + ")"),
+    visites.length ? h("div", { class: "stack" }, visites.slice(0, 30).map(rowVisite)) : h("div", { class: "empty" }, "Aucune visite."),
+  ]);
+}
+function sheetClientForm(c) {
+  const edit = !!c;
+  c = c || { raison_sociale: "", ville: "", type_client: "", niveau_strategique: "C", statut: "actif", commercial_id: isCom() ? S.me.id : "", rayon_metres: 100, lat: null, lng: null };
+  const gpsVerrou = edit && isCom() && c.lat != null;
+  const inp = (id, val, extra = {}) => h("input", { id, value: val == null ? "" : val, ...extra });
+  const nom = inp("cf-nom", c.raison_sociale), ville = inp("cf-ville", c.ville);
+  const type = h("select", { id: "cf-type" }, h("option", { value: "" }, "— Choisir —"), Object.entries(TYPES).map(([k, l]) => h("option", { value: k }, l)));
+  type.value = c.type_client || "";
+  const statut = h("select", { id: "cf-statut" }, Object.entries(STATUTS).map(([k, l]) => h("option", { value: k }, l)));
+  statut.value = c.statut || "actif";
+  let niv = c.niveau_strategique || "C";
+  const nivSeg = h("div", { class: "seg", role: "group", "aria-label": "Niveau stratégique" });
+  const drawNiv = () => nivSeg.replaceChildren(...[["A", "A · Prioritaire"], ["B", "B · Standard"], ["C", "C · Faible"]].map(([k, l]) =>
+    h("button", { type: "button", "aria-pressed": String(k === niv), onclick: () => { niv = k; drawNiv(); } }, l)));
+  drawNiv();
+  const contact = inp("cf-contact", c.contact_principal), tel = inp("cf-tel", c.telephone, { type: "tel", inputmode: "tel" }), email = inp("cf-email", c.email, { type: "email" });
+  const adr = inp("cf-adr", c.adresse), fourn = inp("cf-fourn", c.fournisseur_actuel);
+  const lat = inp("cf-lat", c.lat, { inputmode: "decimal", disabled: gpsVerrou }), lng = inp("cf-lng", c.lng, { inputmode: "decimal", disabled: gpsVerrou });
+  const rayon = inp("cf-rayon", c.rayon_metres || 100, { inputmode: "numeric", disabled: !isChef() });
+  const notes = h("textarea", { id: "cf-notes" }, c.notes || "");
+  const comSel = h("select", { id: "cf-com" }, h("option", { value: "" }, "— Choisir —"), S.users.filter(u => u.role === "commercial" && u.is_active).map(u => h("option", { value: u.id }, u.full_name || "—")));
+  comSel.value = c.commercial_id || "";
+  const gpsMsg = h("span", { class: "sub", style: "margin:0" });
+  const err = h("div", { class: "err", role: "alert" });
+  const usePos = actionBtn("Utiliser ma position actuelle", "ghost sm", err, async () => {
+    gpsMsg.replaceChildren(h("span", { class: "spin" }), " Recherche du signal…");
+    let p;
+    try { p = await mesurerPosition({ onProgress: x => { gpsMsg.textContent = "Précision actuelle : ± " + x.precision + " m"; } }); }
+    catch (e) { gpsMsg.textContent = AIDE_GPS; return; }
+    if (!p) { gpsMsg.textContent = "Aucun signal GPS. Sortez à l'extérieur et réessayez."; return; }
+    lat.value = p.lat.toFixed(6); lng.value = p.lng.toFixed(6);
+    gpsMsg.textContent = "Position relevée à ± " + p.precision + " m." + (p.precision > 50 ? " Signal moyen : réessayez à l'extérieur si possible." : "");
+  });
+  if (gpsVerrou) usePos.disabled = true;
+  openSheet(edit ? "Modifier le client" : "Nouveau client", [
+    field("Raison sociale *", nom),
+    h("div", { class: "two" }, field("Ville *", ville), field("Type *", type)),
+    h("div", { class: "f" }, h("span", {}, "Niveau stratégique"), nivSeg),
+    h("div", { class: "two" }, field("Contact principal", contact), field("Téléphone", tel)),
+    field("Email", email), field("Adresse", adr),
+    h("div", { class: "two" }, field("Fournisseur actuel", fourn), field("Statut", statut)),
+    h("div", { class: "box" },
+      h("div", { class: "f" }, h("span", {}, "Position GPS du client")),
+      h("div", { class: "two" }, field("Latitude", lat), field("Longitude", lng)),
+      usePos, gpsMsg,
+      field("Rayon de validation (m)", rayon),
+      h("span", { class: "sub", style: "margin:0" }, "100 m pour un bureau ou un magasin ; 300 à 1 000 m pour une mine, une usine ou le port." + (isChef() ? "" : " Réglé par le manager.")),
+      h("div", { class: "note rule" }, gpsVerrou
+        ? "Position déjà enregistrée. Seul un manager peut la modifier, pour que les contrôles GPS restent fiables."
+        : "Enregistrez la position quand vous êtes sur le site du client. Ensuite, seul un manager pourra la changer.")),
+    isChef() ? field("Commercial responsable *", comSel) : (edit ? null : h("div", { class: "note" }, "Ce client sera dans votre portefeuille.")),
+    field("Notes", notes),
+    err,
+    actionBtn(edit ? "Enregistrer" : "Créer le client", "pr full", err, async () => {
+      if (!nom.value.trim()) throw new Error("La raison sociale est obligatoire.");
+      if (!ville.value.trim()) throw new Error("La ville est obligatoire.");
+      if (!type.value) throw new Error("Choisissez un type de client.");
+      const num = s => s.trim() === "" ? null : Number(s.trim().replace(",", "."));
+      const la = num(lat.value), lo = num(lng.value);
+      if ((la == null) !== (lo == null) || (la != null && (!isFinite(la) || !isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180)))
+        throw new Error("Latitude et longitude invalides (ex. 5.3500 et -4.0300).");
+      if (isChef() && !comSel.value) throw new Error("Choisissez le commercial responsable.");
+      const data = { raison_sociale: nom.value.trim(), ville: ville.value.trim(), type_client: type.value, niveau_strategique: niv, statut: statut.value,
+        contact_principal: contact.value.trim() || null, telephone: tel.value.trim() || null, email: email.value.trim() || null,
+        adresse: adr.value.trim() || null, fournisseur_actuel: fourn.value.trim() || null, notes: notes.value.trim() || null };
+      if (!gpsVerrou) { data.lat = la; data.lng = lo; }
+      if (isChef()) {
+        const r = Number(rayon.value);
+        if (!(r >= 30 && r <= 2000)) throw new Error("Rayon de validation entre 30 et 2 000 m.");
+        data.rayon_metres = Math.round(r); data.commercial_id = comSel.value;
+      }
+      const saved = edit
+        ? await run(sb.from("clients").update(data).eq("id", c.id).select("*").single())
+        : await run(sb.from("clients").insert(data).select("*").single());
+      const i = S.clients.findIndex(x => x.id === saved.id);
+      if (i >= 0) S.clients[i] = saved; else S.clients.push(saved);
+      S.clients.sort((a, b) => a.raison_sociale.localeCompare(b.raison_sociale));
+      closeSheet(); render(); toast(edit ? "Client modifié" : "Client créé");
+    }),
+  ]);
+}
+
+/* ───────── Page Opportunités ───────── */
+function pageOpps() {
+  let list = S.opps.slice();
+  if (isChef() && filtreCom) list = list.filter(o => o.commercial_id === filtreCom);
+  const ouvertes = list.filter(o => ETAPES_OUVERTES.includes(o.etape));
+  const gagne = list.filter(o => o.etape === "gagnee").reduce((s, o) => s + Number(o.montant_estime || 0), 0);
+  const pipe = ouvertes.reduce((s, o) => s + Number(o.montant_estime || 0), 0);
+  const shown = (filtreEtape === "ouvertes" ? ouvertes : list.filter(o => o.etape === filtreEtape)).slice()
+    .sort((a, b) => (a.date_relance || "9999").localeCompare(b.date_relance || "9999"));
+  return [
+    h("div", { class: "head" }, h("div", {}, h("h1", {}, "Opportunités"), h("p", { class: "sub" }, ouvertes.length + " en cours")),
+      h("button", { class: "btn pr sm", type: "button", onclick: () => sheetOpp(null, {}) }, "+ Nouvelle")),
+    h("div", { class: "kpis", style: "grid-template-columns:repeat(2,minmax(0,1fr))" },
+      h("div", { class: "kpi" }, h("b", {}, fmtShort(pipe)), h("span", {}, "FCFA en cours")),
+      h("div", { class: "kpi" }, h("b", { style: "color:var(--ok)" }, fmtShort(gagne)), h("span", {}, "FCFA gagnés"))),
+    isChef() ? selectCommercial(() => render()) : null,
+    h("div", { class: "chips", role: "group", "aria-label": "Filtrer par étape" },
+      [["ouvertes", "En cours"], ...Object.entries(ETAPES)].map(([k, l]) => h("button", { class: "chip", type: "button", "aria-pressed": String(filtreEtape === k), onclick: () => { filtreEtape = k; render(); } }, l))),
+    shown.length ? h("div", { class: "stack" }, shown.map(rowOpp)) : h("div", { class: "empty" }, "Aucune opportunité à cette étape."),
+  ];
+}
+function rowOpp(o) {
+  const c = client(o.client_id) || { raison_sociale: "—" };
+  const late = ETAPES_OUVERTES.includes(o.etape) && o.date_relance && o.date_relance < todayStr();
+  return h("button", { class: "row", type: "button", onclick: () => sheetOpp(o) },
+    h("div", { class: "main" },
+      h("div", { class: "t" }, o.titre),
+      h("div", { class: "m" }, h("span", {}, c.raison_sociale),
+        isChef() ? h("span", {}, userName(o.commercial_id)) : null,
+        o.date_relance && ETAPES_OUVERTES.includes(o.etape) ? h("span", { class: late ? "late" : "" }, (late ? "Relance en retard · " : "Relance ") + fmtDate(o.date_relance)) : null)),
+    h("div", { class: "end" }, h("span", { class: "money" }, o.montant_estime ? fmtShort(Number(o.montant_estime)) : "—"), h("span", { class: "pill e-" + o.etape }, ETAPES[o.etape] || o.etape)));
+}
+function sheetOpp(o, preset = {}) {
+  const edit = !!o;
+  o = o || { client_id: "", titre: "", montant_estime: null, etape: "nouvelle", date_relance: inDays(7), notes: "", visite_id: null, ...preset };
+  const cl = h("select", { id: "op-client", disabled: edit && !isChef() }, h("option", { value: "" }, "— Choisir un client —"), S.clients.map(c => h("option", { value: c.id }, c.raison_sociale)));
+  cl.value = o.client_id || "";
+  const titre = h("input", { id: "op-titre", value: o.titre || "", placeholder: "Ex. roulements broyeur à boulets" });
+  const montant = h("input", { id: "op-montant", inputmode: "numeric", value: o.montant_estime ? String(Number(o.montant_estime)) : "", placeholder: "Ex. 12500000" });
+  const rel = h("input", { id: "op-rel", type: "date", value: o.date_relance || "" });
+  const notes = h("textarea", { id: "op-notes" }, o.notes || "");
+  let etape = o.etape;
+  const seg = h("div", { class: "seg", role: "group", "aria-label": "Étape" });
+  const draw = () => seg.replaceChildren(...Object.entries(ETAPES).map(([k, l]) => h("button", { type: "button", "aria-pressed": String(k === etape), onclick: () => { etape = k; draw(); } }, l)));
+  draw();
+  const err = h("div", { class: "err", role: "alert" });
+  let confirmSuppr = false;
+  const suppr = edit ? actionBtn("Supprimer l'opportunité", "ghost full", err, async () => {
+    if (!confirmSuppr) { confirmSuppr = true; throw new Error("Appuyez encore une fois pour confirmer la suppression."); }
+    await run(sb.from("opportunites").delete().eq("id", o.id));
+    S.opps = S.opps.filter(x => x.id !== o.id); closeSheet(); render(); toast("Opportunité supprimée");
+  }) : null;
+  openSheet(edit ? "Opportunité" : "Nouvelle opportunité", [
+    field("Client *", cl), field("Intitulé *", titre),
+    h("div", { class: "two" }, field("Montant estimé (FCFA)", montant), field("Prochaine relance", rel)),
+    h("div", { class: "f" }, h("span", {}, "Étape"), seg),
+    field("Notes", notes),
+    edit ? h("div", { class: "note" }, "Suivie par " + userName(o.commercial_id) + " · créée le " + fmtDate(o.created_at)) : null,
+    err,
+    actionBtn(edit ? "Enregistrer" : "Créer l'opportunité", "pr full", err, async () => {
+      if (!cl.value) throw new Error("Choisissez un client.");
+      if (!titre.value.trim()) throw new Error("Donnez un intitulé à l'opportunité.");
+      const m = montant.value.replace(/[\s  ]/g, "").replace(",", ".");
+      if (m && !(Number(m) >= 0)) throw new Error("Montant invalide : chiffres uniquement, ex. 12500000.");
+      const data = { client_id: cl.value, titre: titre.value.trim(), montant_estime: m ? Number(m) : null, etape, date_relance: rel.value || null, notes: notes.value.trim() || null };
+      if (!edit && o.visite_id) data.visite_id = o.visite_id;
+      const saved = edit
+        ? await run(sb.from("opportunites").update(data).eq("id", o.id).select("*").single())
+        : await run(sb.from("opportunites").insert(data).select("*").single());
+      const i = S.opps.findIndex(x => x.id === saved.id);
+      if (i >= 0) S.opps[i] = saved; else S.opps.unshift(saved);
+      closeSheet(); if (page !== "opportunites") go("opportunites"); else render();
+      toast(edit ? "Opportunité mise à jour" : "Opportunité créée");
+    }),
+    suppr,
+  ]);
+}
+
+/* ───────── Page Équipe (administrateur) ───────── */
+function pageEquipe() {
+  const managers = S.users.filter(u => u.role === "manager" && u.is_active);
+  const maj = async (u, patch, msg) => {
+    try {
+      const saved = await run(sb.from("profiles").update(patch).eq("id", u.id).select("id,full_name,role,is_active,manager_id,zone").single());
+      Object.assign(u, saved); toast(msg);
+    } catch (e) { toast(msgErreur(e), 4000); }
+    render();
+  };
+  return [
+    h("div", {}, h("h1", {}, "Équipe"), h("p", { class: "sub" }, "Rôles, managers et accès.")),
+    h("div", { class: "note rule" }, "Pour ajouter quelqu'un : Supabase → Authentication → Add user (email + mot de passe provisoire). Le compte apparaît ici « suspendu ». Choisissez son rôle puis activez-le."),
+    h("div", { class: "stack" }, S.users.map(u => {
+      const self = u.id === S.me.id;
+      const nom = h("input", { value: u.full_name || "", "aria-label": "Nom", onchange: e => { const v = e.target.value.trim(); if (v) maj(u, { full_name: v }, "Nom modifié"); } });
+      const role = h("select", { "aria-label": "Rôle de " + (u.full_name || ""), disabled: self, onchange: e => maj(u, { role: e.target.value, manager_id: e.target.value === "commercial" ? u.manager_id : null }, "Rôle modifié") },
+        Object.entries(ROLES).map(([k, l]) => h("option", { value: k }, l)));
+      role.value = u.role;
+      const mgr = u.role === "commercial" ? h("select", { "aria-label": "Manager", onchange: e => maj(u, { manager_id: e.target.value || null }, "Manager modifié") },
+        h("option", { value: "" }, "Sans manager"), managers.map(m => h("option", { value: m.id }, m.full_name || "—"))) : null;
+      if (mgr) mgr.value = u.manager_id || "";
+      const tg = h("button", { class: "toggle", type: "button", role: "switch", "aria-checked": String(u.is_active), "aria-label": "Accès de " + (u.full_name || ""), disabled: self,
+        onclick: () => maj(u, { is_active: !u.is_active }, u.is_active ? "Compte suspendu" : "Compte activé") });
+      return h("div", { class: "row", style: "flex-wrap:wrap" },
+        h("div", { class: "main", style: "flex-basis:60%" },
+          h("div", { class: "t" }, (u.full_name || "—") + (self ? " (vous)" : "")),
+          h("div", { class: "m" }, h("span", { class: u.is_active ? "" : "late" }, u.is_active ? "Actif" : "Suspendu"))),
+        tg,
+        h("div", { style: "flex-basis:100%" }, field("Nom affiché", nom)),
+        h("div", { class: "two", style: "flex-basis:100%" }, field("Rôle", role), mgr ? field("Manager", mgr) : h("span")));
+    })),
+  ];
+}
+
+/* ───────── Démarrage et session ───────── */
+async function ouvrirSession(session) {
+  S.session = session;
+  $("#root").replaceChildren(h("div", { class: "loading" }, h("span", { class: "spin" }), " Chargement…"));
+  try {
+    const me = await run(sb.from("profiles").select("id,full_name,role,is_active,manager_id,zone").eq("id", session.user.id).maybeSingle());
+    if (!me || !me.is_active) {
+      $("#root").replaceChildren(h("div", { class: "wrap" }, h("div", { class: "blocked" },
+        h("h1", {}, me ? "Compte en attente ou suspendu" : "Compte non configuré"),
+        h("p", { class: "sub" }, "Votre compte n'a pas encore été activé, ou il a été suspendu. Demandez à l'administrateur de l'activer dans l'écran Équipe."),
+        h("button", { class: "btn ghost", type: "button", onclick: () => sb.auth.signOut() }, "Se déconnecter"))));
+      return;
+    }
+    S.me = me;
+    await chargerTout();
+    coquille(); render(); suiviPresence();
+  } catch (e) {
+    $("#root").replaceChildren(h("div", { class: "wrap" }, h("div", { class: "blocked" },
+      h("h1", {}, "Impossible de charger les données"), h("p", { class: "sub" }, msgErreur(e)),
+      h("button", { class: "btn pr", type: "button", onclick: () => ouvrirSession(session) }, "Réessayer"),
+      h("button", { class: "btn ghost", type: "button", onclick: () => sb.auth.signOut() }, "Se déconnecter"))));
+  }
+}
+function fermerSession() {
+  clearInterval(pointIv); clearInterval(timerIv); closeSheet();
+  Object.assign(S, { session: null, me: null, users: [], clients: [], visites: [], opps: [], loaded: false });
+  filtreCom = ""; rechClient = ""; filtreClient = "tous"; page = "visites";
+  ecranConnexion();
+}
+let sessionCourante = null;
+sb.auth.onAuthStateChange((event, session) => {
+  const uid = session && session.user && session.user.id;
+  if (uid && uid !== sessionCourante) { sessionCourante = uid; setTimeout(() => ouvrirSession(session), 0); }
+  else if (!uid && sessionCourante !== "") { sessionCourante = ""; fermerSession(); }
+  else if (session) S.session = session;
+});
+const hp = (location.hash || "").slice(1);
+if (PAGES[hp]) page = hp;
+window.addEventListener("hashchange", () => { const p = location.hash.slice(1); if (PAGES[p] && p !== page && S.me) { page = p; render(); } });
+</script>
+</body>
+</html>
