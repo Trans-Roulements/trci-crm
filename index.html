@@ -242,6 +242,7 @@ function msgErreur(e) {
   if (/Failed to fetch|NetworkError|network/i.test(m)) return "Pas de connexion internet. Réessayez quand le réseau revient.";
   if (/Invalid login credentials/i.test(m)) return "Email ou mot de passe incorrect.";
   if (/Email not confirmed/i.test(m)) return "Email non confirmé. Demandez à l'administrateur de valider votre compte.";
+  if (/supprimer_membre/i.test(m) && /function|fonction|schema cache/i.test(m)) return "La suppression n'est pas encore installée : lancez d'abord le script SQL « ajout-suppression-commercial.sql » dans Supabase.";
   if (/row-level security|permission denied/i.test(m)) return "Action non autorisée pour votre compte.";
   if (/JWT|token/i.test(m)) return "Session expirée. Reconnectez-vous.";
   return m;
@@ -263,24 +264,31 @@ const GPS_LBL = { valide: "GPS validé", a_verifier: "À vérifier", non_conform
 const gpsPill = (s, d) => s ? h("span", { class: "pill g-" + s }, GPS_LBL[s] + (d != null ? " · " + fmtDist(d) : "")) : h("span", { class: "pill g-non_verifie" }, "Sans contrôle");
 
 /* ───────── État ───────── */
-const S = { session: null, me: null, users: [], clients: [], visites: [], opps: [], loaded: false };
+const S = { session: null, me: null, users: [], anciens: [], clients: [], visites: [], opps: [], loaded: false };
 const isChef = () => S.me && ["admin", "manager"].includes(S.me.role);
 const isAdmin = () => S.me && S.me.role === "admin";
 const isCom = () => S.me && S.me.role === "commercial";
-const userName = id => (S.users.find(u => u.id === id) || {}).full_name || "—";
+const userName = id => {
+  const u = S.users.find(x => x.id === id);
+  if (u) return u.full_name || "—";
+  const a = S.anciens.find(x => x.id === id);   // membre supprimé : on garde son nom sur l'historique
+  return a ? (a.full_name || "—") + " (supprimé)" : "—";
+};
 const client = id => S.clients.find(c => c.id === id);
 const visiteEnCours = () => S.visites.find(v => v.statut === "en_cours" && v.commercial_id === S.me.id);
 const aVerifier = v => v.statut === "terminee" && !v.revue_decision && (v.alertes || []).length > 0;
 const rayonDe = c => c.rayon_metres || 100;
 
 async function chargerTout() {
-  const [users, clients, visites, opps] = await Promise.all([
+  const [users, clients, visites, opps, anciens] = await Promise.all([
     run(sb.from("profiles").select("id,full_name,role,is_active,manager_id,zone").order("full_name")),
     run(sb.from("clients").select("*").order("raison_sociale")),
     run(sb.from("v_visites").select("*").not("heure_debut", "is", null).order("heure_debut", { ascending: false }).limit(400)),
     run(sb.from("opportunites").select("*").order("created_at", { ascending: false })),
+    // Table ajoutée avec la suppression des membres : si le script n'est pas encore passé, on continue sans.
+    sb.from("comptes_supprimes").select("id,full_name").then(r => r.data || [], () => []),
   ]);
-  Object.assign(S, { users, clients, visites, opps, loaded: true });
+  Object.assign(S, { users, clients, visites, opps, anciens, loaded: true });
 }
 async function rechargerVisite(id) {
   const v = await run(sb.from("v_visites").select("*").eq("id", id).single());
@@ -952,9 +960,46 @@ function pageEquipe() {
           h("div", { class: "m" }, h("span", { class: u.is_active ? "" : "late" }, u.is_active ? "Actif" : "Suspendu"))),
         tg,
         h("div", { style: "flex-basis:100%" }, field("Nom affiché", nom)),
-        h("div", { class: "two", style: "flex-basis:100%" }, field("Rôle", role), mgr ? field("Manager", mgr) : h("span")));
+        h("div", { class: "two", style: "flex-basis:100%" }, field("Rôle", role), mgr ? field("Manager", mgr) : h("span")),
+        !self && u.role !== "admin" ? h("div", { style: "flex-basis:100%;text-align:right" },
+          h("button", { class: "btn ghost sm", type: "button", style: "color:var(--bad)", onclick: () => sheetSupprimerMembre(u) }, "Supprimer " + (u.full_name || "ce membre") + "…")) : null);
     })),
   ];
+}
+
+// Suppression définitive d'un membre : ses clients sont d'abord confiés à un autre commercial.
+function sheetSupprimerMembre(u) {
+  const nom = u.full_name || "ce membre";
+  const nbClients = S.clients.filter(c => c.commercial_id === u.id).length;
+  const nbOpps = S.opps.filter(o => o.commercial_id === u.id && ETAPES_OUVERTES.includes(o.etape)).length;
+  const nbVisites = S.visites.filter(v => v.commercial_id === u.id).length;
+  const aConfier = nbClients + nbOpps > 0;
+  const repreneurs = S.users.filter(x => x.id !== u.id && x.role === "commercial" && x.is_active);
+  const err = h("div", { class: "err", role: "alert" });
+  const rep = h("select", { id: "sm-rep" }, h("option", { value: "" }, "— Choisir —"), repreneurs.map(x => h("option", { value: x.id }, x.full_name || "—")));
+  const mot = h("input", { id: "sm-mot", autocomplete: "off", autocapitalize: "characters", placeholder: "SUPPRIMER" });
+  const pluriel = (n, s) => n + " " + s + (n > 1 ? "s" : "");
+  openSheet("Supprimer " + nom + " ?", [
+    h("p", { style: "margin:0" }, "Son compte sera effacé : " + nom + " ne pourra plus se connecter. ", h("b", {}, "Cette action est définitive.")),
+    h("ul", { style: "margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px" },
+      h("li", {}, aConfier ? pluriel(nbClients, "client") + " et " + pluriel(nbOpps, "opportunité") + " en cours passeront au commercial choisi ci-dessous." : "Aucun client ni opportunité en cours à confier."),
+      h("li", {}, "Ses visites (" + nbVisites + ") et ses opportunités gagnées ou perdues sont gardées, avec son nom, pour l'historique."),
+      h("li", {}, "Une visite restée « en cours » sera annulée.")),
+    h("div", { class: "note" }, "Pour un départ temporaire, utilisez plutôt l'interrupteur « Suspendu » : rien n'est effacé."),
+    aConfier ? field("Confier ses clients à *", rep) : null,
+    aConfier && !repreneurs.length ? h("div", { class: "err" }, "Aucun autre commercial actif : activez ou créez d'abord un commercial pour reprendre ses clients.") : null,
+    field("Pour confirmer, tapez SUPPRIMER", mot),
+    err,
+    h("div", { class: "actions" },
+      h("button", { class: "btn ghost", type: "button", onclick: closeSheet }, "Annuler"),
+      actionBtn("Supprimer définitivement", "bad", err, async () => {
+        if (aConfier && !rep.value) throw new Error("Choisissez le commercial qui reprend ses clients.");
+        if (mot.value.trim().toUpperCase() !== "SUPPRIMER") throw new Error("Tapez le mot SUPPRIMER pour confirmer.");
+        await run(sb.rpc("supprimer_membre", { p_id: u.id, p_repreneur: aConfier ? rep.value : null }));
+        await chargerTout(); closeSheet(); render();
+        toast(nom + " a été supprimé" + (aConfier ? ". Clients confiés à " + userName(rep.value) : ""), 4000);
+      })),
+  ]);
 }
 
 /* ───────── Démarrage et session ───────── */
@@ -982,7 +1027,7 @@ async function ouvrirSession(session) {
 }
 function fermerSession() {
   clearInterval(pointIv); clearInterval(timerIv); closeSheet();
-  Object.assign(S, { session: null, me: null, users: [], clients: [], visites: [], opps: [], loaded: false });
+  Object.assign(S, { session: null, me: null, users: [], anciens: [], clients: [], visites: [], opps: [], loaded: false });
   filtreCom = ""; rechClient = ""; filtreClient = "tous"; page = "visites";
   ecranConnexion();
 }
